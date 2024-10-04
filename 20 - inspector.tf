@@ -1,10 +1,6 @@
-# Enable AWS Inspector for your account (new Inspector version)
-resource "aws_inspector2_organization_configuration" "example" {
-  auto_enable {
-    ec2   = true
-    ecr   = true
-    # lambda = true  # Enable for Lambda (optional)
-  }
+resource "aws_inspector2_enabler" "example" {
+  account_ids    = ["442426854829"]
+  resource_types = ["EC2"]
 }
 
 # Set up AWS Inspector filters (optional, but used to define the findings you want)
