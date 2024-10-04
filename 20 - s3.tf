@@ -16,19 +16,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "agoge-tf-s3-bucke
   }
 }
 
-# Create a KMS Key for encryption
-resource "aws_kms_key" "s3_encryption" {
-  description             = "KMS key to encrypt S3 bucket"
-  deletion_window_in_days = 10
-  enable_key_rotation     = true
-}
-
-# Create a KMS key alias (optional)
-resource "aws_kms_alias" "s3_encryption_alias" {
-  name          = "alias/s3_encryption_key"
-  target_key_id = aws_kms_key.s3_encryption.key_id
-}
-
 # Optionally, create a public access block to restrict public access
 resource "aws_s3_bucket_public_access_block" "block_public_access" {
   bucket = aws_s3_bucket.agoge-tf-s3-bucket.id
