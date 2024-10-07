@@ -1,11 +1,12 @@
-# Create an S3 bucket without the encryption block
+# Create the S3 bucket without inline encryption
 resource "aws_s3_bucket" "agoge-tf-s3-bucket" {
-  bucket = "agoge-tf-s3-bucket-for-inspector"  # Replace with a unique bucket name
-  # Other configurations like versioning, logging, etc., can go here
+  bucket = "agoge-tf-s3-bucket" # Replace with a unique bucket name
+
+  # Other bucket configurations can go here
 }
 
-# Separate server-side encryption configuration
-resource "aws_s3_bucket_server_side_encryption_configuration" "agoge-tf-s3-bucket_encryption" {
+# Separate Server-Side Encryption Configuration for S3 Bucket using Customer Managed KMS Key
+resource "aws_s3_bucket_server_side_encryption_configuration" "my_bucket_encryption" {
   bucket = aws_s3_bucket.agoge-tf-s3-bucket.bucket
 
   rule {
