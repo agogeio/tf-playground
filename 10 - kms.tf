@@ -14,10 +14,10 @@ resource "aws_kms_key_policy" "s3_encryption_key_policy" {
     "Statement": [
       # I believe required to eliminate error: The new key policy will not allow you to update the key policy in the future.
       {
-        "Sid": "Allow root tf-console and tf-deployment-group Full Management Access to the Key",
+        "Sid": "Manage KMS Key",
         "Effect": "Allow",
         "Principal": {
-          AWS = ["*"]
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
         },
         "Action": "kms:*",
         "Resource": "*"
