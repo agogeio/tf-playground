@@ -1,85 +1,43 @@
 # Create a Customer Managed KMS Key for encryption
-resource "aws_kms_key" "s3_encryption" {
+resource "aws_kms_key" "s3_encryption_key" {
   description             = "Customer Managed KMS key to encrypt S3 bucket"
   deletion_window_in_days = 10
   enable_key_rotation     = true # Enable automatic key rotation
+}
 
-  policy = <<EOF
-  {
-    "Version": "2012-10-17",
-    "Id": "key-policy",
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key_policy
+resource "aws_kms_key_policy" "s3_encryption_key_policy" {
+  key_id = aws_kms_key.s3_encryption_key.id
+  policy = jsonencode({
+    "Version": "2012-10-17"
+    "Id": "some_example"
     "Statement": [
+      # I believe required to eliminate error: The new key policy will not allow you to update the key policy in the future.
       {
-        "Sid": "Enable IAM User Permissions",
+        "Sid": "Allow root tf-console and tf-deployment-group Full Management Access to the Key",
         "Effect": "Allow",
         "Principal": {
-          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+          AWS = ["*"]
         },
         "Action": "kms:*",
         "Resource": "*"
       },
+      # Allow Inspector2 Full Access to the Key
       {
-        "Sid": "Allow S3 Use of the Key",
+        "Sid": "Allow Inspector2 Full Access to the Key",
         "Effect": "Allow",
         "Principal": {
-          "Service": "s3.amazonaws.com"
+          "Service": "inspector2.amazonaws.com"
         },
-        "Action": [
-          "kms:Encrypt",
-          "kms:Decrypt",
-          "kms:ReEncrypt*",
-          "kms:GenerateDataKey*",
-          "kms:DescribeKey"
-        ],
-        "Resource": "*",
-        "Condition": {
-          "StringEquals": {
-            "kms:ViaService": "s3.${data.aws_region.current.name}.amazonaws.com",
-            "kms:CallerAccount": "${data.aws_caller_identity.current.account_id}"
-          }
-        }
-      },
-      {
-        "Sid": "Allow tf.user to manage and use the KMS key",
-        "Effect": "Allow",
-        "Principal": {
-          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/tf.user"
-        },
-        "Action": [
-          "kms:Create*",
-          "kms:Describe*",
-          "kms:Enable*",
-          "kms:List*",
-          "kms:Put*",
-          "kms:Update*",
-          "kms:Revoke*",
-          "kms:Disable*",
-          "kms:Get*",
-          "kms:Delete*",
-          "kms:TagResource",
-          "kms:UntagResource",
-          "kms:ScheduleKeyDeletion",
-          "kms:CancelKeyDeletion",
-          "kms:Encrypt",
-          "kms:Decrypt",
-          "kms:ReEncrypt*",
-          "kms:GenerateDataKey*",
-          "kms:GenerateDataKeyPair*"
-        ],
+        "Action": "kms:*",
         "Resource": "*"
       }
     ]
-  }
-  EOF
+  })
 }
 
 # Create a KMS key alias (optional)
-resource "aws_kms_alias" "s3_encryption_alias" {
+resource "aws_kms_alias" "s3_encryption_key_alias" {
   name          = "alias/my_s3_encryption_key"
-  target_key_id = aws_kms_key.s3_encryption.key_id
+  target_key_id = aws_kms_key.s3_encryption_key.key_id
 }
-
-# Data sources to fetch AWS Account details
-data "aws_caller_identity" "current" {}
-
-data "aws_region" "current" {}
